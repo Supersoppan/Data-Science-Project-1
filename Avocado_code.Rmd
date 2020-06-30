@@ -23,7 +23,7 @@ lapply(packages, library, character.only = TRUE)
 Avocado = read.csv("avocado.csv", header = T, sep = ",")
 ```
 
-l
+
 
 ##Inspect, plot, and check descriptive statistics
 
