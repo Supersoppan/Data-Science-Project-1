@@ -1,0 +1,41 @@
+---
+title: "Data Science - Avocado Prices"
+author: "Jens Mattsson"
+date: "2020 M06 30"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###R tips and tricks
+Curson inside a command and press f1 will open the help window.
+
+
+```{r echo=FALSE, include=FALSE}
+Avocado = read.csv("avocado.csv", header = T, sep = ",")
+library(stargazer)
+```
+
+
+
+##Inspect, plot, and check descriptive statistics
+
+```{r echo=FALSE}
+names(Avocado)  
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
