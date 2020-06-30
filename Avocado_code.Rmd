@@ -16,18 +16,30 @@ knitr::opts_chunk$set(echo = TRUE)
 Curson inside a command and press f1 will open the help window.
 
 
-```{r echo=FALSE, include=FALSE}
+```{r Load packages and data set, echo=FALSE, include=FALSE}
+packages = c("stargazer", "ggplot2", "lubridate")
+lapply(packages, library, character.only = TRUE)
+
 Avocado = read.csv("avocado.csv", header = T, sep = ",")
-library(stargazer)
 ```
 
 
 
 ##Inspect, plot, and check descriptive statistics
 
-```{r echo=FALSE}
-names(Avocado)  
+```{r fix the Date variable, echo=FALSE, include=FALSE}
+is.Date(Avocado$Date)
+Avocado$Date = as.Date(Avocado$Date)
+is.Date(Avocado$Date)
+str(Avocado)
 ```
+
+
+```{r echo=FALSE}
+names(Avocado)
+ggplot(Avocado) + geom_point(aes(y = AveragePrice, x = Date), size = 0.2) + scale_x_date(date_breaks = "1 year") + geom_smooth(aes(y = AveragePrice, x = Date))
+```
+
 
 
 ## Including Plots
