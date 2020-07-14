@@ -9,19 +9,48 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #Let´s plot the average price as for each period
 ```{r, echo = FALSE, include = FALSE}
-packages = c("ggplot2", "lubridate")
+packages = c("ggplot2", "lubridate", "plm")
 lapply(packages, library, character.only = TRUE)
-
-avocado = read_csv("avocado.csv", skip = 1)
-price_plot = ggplot(avocado) + 
-  geom_point(aes(y = AveragePrice, x = Date), size = 0.1) + scale_x_date(date_breaks = "6 months")
-price_plot
-
+avocado = read.csv("avocado.csv")
+avocado$Date = as.Date(avocado$Date)
+avocado$AveragePrice = as.numeric(avocado$AveragePrice)
 ```
 
 #The price looks pretty messy right? So let´s use Pontus coola confidence interval grej
 
 ```{r}
+price_plot = ggplot(avocado) +
+  geom_point(aes(y = AveragePrice, x = Date), size = 0.1) + 
+  scale_x_date(date_breaks = "6 months")
+price_plot
 price_plot +  geom_smooth(aes(y = AveragePrice, x = Date))
 ```
+As we can see, there appears to be some cyclical pattern that is further enhanced by time. Could data disaggregate  based on months be reasonable?
+Varaiance might increase aswell, may use a GARCH similar model
 
+```{r}
+#avocado_ps = pdata.frame(avocado, index = c("region", "Date"))
+#model = plm(formula = AveragePrice ~ lag(AveragePrice, 1:5), subset(avocado_ps, type == "conventional"))
+#summary(model)
+ggplot(avocado, aes(x = AveragePrice, fill = type)) +
+  geom_histogram()
+kolumner = colnames(avocado)
+for(j in kolumner){
+  print(ggplot(avocado, aes(y = AveragePrice, x = j)) + geom_point())
+}
+```
+```{r}
+avocado$Year = format(as.Date(avocado$Date), "%Y")
+avocado$Month = format(as.Date(avocado$Date), "%m")
+#gets the average and variance of each month for all years and states
+avocado = avocado %>% 
+  group_by(Month) %>%
+  summarise(avg = mean(AveragePrice), var = var(AveragePrice)) %>% 
+  merge(testing, by = "Month")
+
+ggplot(data = avocado, aes(x = Month, y = AveragePrice)) +
+  geom_dotplot(binaxis = "AveragePrice", stackdir = "centre")
+
+
+```
+  
