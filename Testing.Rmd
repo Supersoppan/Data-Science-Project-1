@@ -51,6 +51,7 @@ avocado = avocado %>%
 ggplot(data = avocado, aes(x = Month, y = AveragePrice)) +
   geom_dotplot(binaxis = "AveragePrice", stackdir = "centre")
 
+hej
 
 ```
   
