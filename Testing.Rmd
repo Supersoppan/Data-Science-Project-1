@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #Let´s plot the average price as for each period
 ```{r, echo = FALSE, include = FALSE}
-packages = c("ggplot2", "lubridate", "plm")
+packages = c("ggplot2", "lubridate", "plm", "dplyr")
 lapply(packages, library, character.only = TRUE)
 avocado = read.csv("avocado.csv")
 avocado$Date = as.Date(avocado$Date)
@@ -45,13 +45,22 @@ avocado$Month = format(as.Date(avocado$Date), "%m")
 #gets the average and variance of each month for all years and states
 avocado = avocado %>% 
   group_by(Month) %>%
-  summarise(avg = mean(AveragePrice), var = var(AveragePrice)) %>% 
-  merge(testing, by = "Month")
+  summarise(avg_M = mean(AveragePrice), var_M = var(AveragePrice)) %>% 
+  merge(avocado, by = c("Month"))
+
+#gets the average and variance subsetted on each month and year. states are not differenteiated between
+avocado = avocado %>% 
+  group_by(Month, Year) %>%
+  summarise(avg_M_Y = mean(AveragePrice), var_M_Y = var(AveragePrice)) %>% 
+  merge(avocado, by = c("Month", "Year"))
 
 ggplot(data = avocado, aes(x = Month, y = AveragePrice)) +
-  geom_dotplot(binaxis = "AveragePrice", stackdir = "centre")
+  geom_smooth(color="red", fill="#69b3a2", se=TRUE)
 
-hej
 
+
+ggplot(avocado, aes(x = Month, y = Year, fill = avg_M_Y)) +
+  geom_tile() +
+  scale_fill_viridis_c()
 ```
-  
+      
