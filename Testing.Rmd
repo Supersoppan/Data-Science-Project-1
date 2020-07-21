@@ -18,7 +18,7 @@ avocado$AveragePrice = as.numeric(avocado$AveragePrice)
 
 #The price looks pretty messy right? So let´s use Pontus coola confidence interval grej
 
-```{r}
+```{r, echo = FALSE}
 price_plot = ggplot(avocado) +
   geom_point(aes(y = AveragePrice, x = Date), size = 0.1) + 
   scale_x_date(date_breaks = "6 months")
@@ -28,18 +28,16 @@ price_plot +  geom_smooth(aes(y = AveragePrice, x = Date))
 As we can see, there appears to be some cyclical pattern that is further enhanced by time. Could data disaggregate  based on months be reasonable?
 Varaiance might increase aswell, may use a GARCH similar model
 
-```{r}
+```{r, echo = FALSE}
 #avocado_ps = pdata.frame(avocado, index = c("region", "Date"))
 #model = plm(formula = AveragePrice ~ lag(AveragePrice, 1:5), subset(avocado_ps, type == "conventional"))
 #summary(model)
 ggplot(avocado, aes(x = AveragePrice, fill = type)) +
   geom_histogram()
 kolumner = colnames(avocado)
-for(j in kolumner){
-  print(ggplot(avocado, aes(y = AveragePrice, x = j)) + geom_point())
-}
+
 ```
-```{r}
+```{r, echo = FALSE}
 avocado$Year = format(as.Date(avocado$Date), "%Y")
 avocado$Month = format(as.Date(avocado$Date), "%m")
 #gets the average and variance of each month for all years and states
@@ -53,14 +51,52 @@ avocado = avocado %>%
   group_by(Month, Year) %>%
   summarise(avg_M_Y = mean(AveragePrice), var_M_Y = var(AveragePrice)) %>% 
   merge(avocado, by = c("Month", "Year"))
+```
+Let´s look at the mean of the average price for each month
 
+```{r, echo = FALSE}
+ggplot(data = avocado, aes(x = Month, y = avg_M)) +
+  geom_point()
+```
+Hmm, not much difference in price in terms of magnitude but let´s see how certain this is by looking at variance aswell using a boxplot
+
+```{r, echo = FALSE}
 ggplot(data = avocado, aes(x = Month, y = AveragePrice)) +
-  geom_smooth(color="red", fill="#69b3a2", se=TRUE)
+  geom_boxplot() +
+  geom_point(aes(y = avg_M), colour = "blue")
+```
+Wow, pretty big variance. Let´s see if they they change variance throught the months.
 
+```{r, echo = FALSE}
+ggplot(data = avocado, aes(x = Month, y = var_M)) +
+  geom_point(colour = "blue")
+```
+They do! That´s pretty intersting, it seems like the best time to buy an advocado is in january when the price is the lowest and the variance (also known as risk) is the lowest as well.
 
-
+```{r, echo = FALSE}
 ggplot(avocado, aes(x = Month, y = Year, fill = avg_M_Y)) +
   geom_tile() +
   scale_fill_viridis_c()
 ```
-      
+Seems like the 9th month is among the higest, as we expected and price are rising every year
+
+```{r, echo = FALSE}
+avocado = avocado %>% 
+  group_by(region) %>% 
+  summarise(avg_region = mean(AveragePrice), var_region = var(AveragePrice)) %>% 
+  merge(avocado, by = "region")  
+
+ggplot(avocado, aes(y = AveragePrice, x = region)) +
+  geom_boxplot()
+```
+Looks like the states are pretty varied in their price
+
+```{r, echo = FALSE}
+
+test = subset(avocado, 1.311019 < avg_region)
+test2 = subset(avocado, 1.311019 > avg_region)
+
+unique(test2$region)
+
+```
+
