@@ -13,7 +13,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ###R tips and tricks
-Curson inside a command and press f1 will open the help window.
+
+Cursor inside a command and press f1 will open the help window.
+cursor inside a chunk: Run current line: ctrl+enter. Run whole chunk: ctrl+shit+enter.
+When saving code and uploading to github: Git, Diff, click checkbox, write some commit command, commit, then pull, then push.
+remove()
 
 
 ```{r Load packages and data set, echo=FALSE, include=FALSE}
@@ -34,20 +38,35 @@ is.Date(Avocado$Date)
 str(Avocado)
 ```
 
+```{r rename variables, echo=FALSE, include=FALSE}
+names(Avocado)[5] = "Small"
+names(Avocado)[6] = "Large"
+names(Avocado)[7] = "XL"
+```
+
 
 ```{r echo=FALSE}
 names(Avocado)
 ggplot(Avocado) + geom_point(aes(y = AveragePrice, x = Date), size = 0.2) + scale_x_date(date_breaks = "1 year") + geom_smooth(aes(y = AveragePrice, x = Date))
+
+
+
+col = colnames(Avocado)
+for (i in col) {
+  ggplot(Avocado) + geom_point(aes(y = AveragePrice, x = i), size = 0.2)
+}
+for (i in colnames(Avocado)[2][4:14]){
+ggplot(Avocado) + geom_point(aes(y = AveragePrice, x = i), size = 0.2)
+}
+for (i in col){
+plot(Avocado$AveragePrice,Avocado$i)
+  }
+```
+
+
+```{r}
+length(unique(Avocado$region))
 ```
 
 
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
