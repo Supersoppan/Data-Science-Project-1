@@ -21,10 +21,10 @@ remove()
 
 
 ```{r Load packages and data set, echo=FALSE, include=FALSE}
-packages = c("stargazer", "ggplot2", "lubridate")
+packages = c("stargazer", "ggplot2", "lubridate", "dplyr")
 lapply(packages, library, character.only = TRUE)
 
-Avocado = read.csv("avocado.csv", header = T, sep = ",")
+avocado = read.csv("avocado.csv", header = T, sep = ",")
 ```
 
 
@@ -32,41 +32,111 @@ Avocado = read.csv("avocado.csv", header = T, sep = ",")
 ##Inspect, plot, and check descriptive statistics
 
 ```{r fix the Date variable, echo=FALSE, include=FALSE}
-is.Date(Avocado$Date)
-Avocado$Date = as.Date(Avocado$Date)
-is.Date(Avocado$Date)
-str(Avocado)
+is.Date(avocado$Date)
+avocado$Date = as.Date(avocado$Date)
+is.Date(avocado$Date)
+str(avocado)
+avocado$AveragePrice = as.numeric(avocado$AveragePrice)
+
 ```
 
 ```{r rename variables, echo=FALSE, include=FALSE}
-names(Avocado)[5] = "Small"
-names(Avocado)[6] = "Large"
-names(Avocado)[7] = "XL"
+names(avocado)[5] = "Small"
+names(avocado)[6] = "Large"
+names(avocado)[7] = "XL"
 ```
 
 
 ```{r echo=FALSE}
-names(Avocado)
-ggplot(Avocado) + geom_point(aes(y = AveragePrice, x = Date), size = 0.2) + scale_x_date(date_breaks = "1 year") + geom_smooth(aes(y = AveragePrice, x = Date))
+names(avocado)
+ggplot(avocado) + geom_point(aes(y = AveragePrice, x = Date), size = 0.2) + scale_x_date(date_breaks = "1 year") + geom_smooth(aes(y = AveragePrice, x = Date))
 
 
 
-col = colnames(Avocado)
+'col = colnames(avocado)
 for (i in col) {
-  ggplot(Avocado) + geom_point(aes(y = AveragePrice, x = i), size = 0.2)
+  ggplot(avocado) + geom_point(aes(y = AveragePrice, x = i), size = 0.2)
 }
-for (i in colnames(Avocado)[2][4:14]){
-ggplot(Avocado) + geom_point(aes(y = AveragePrice, x = i), size = 0.2)
+for (i in colnames(avocado)[2][4:14]){
+ggplot(avocado) + geom_point(aes(y = AveragePrice, x = i), size = 0.2)
 }
 for (i in col){
-plot(Avocado$AveragePrice,Avocado$i)
-  }
+plot(avocado$AveragePrice,avocado$i)
+  }'
 ```
 
 
 ```{r}
-length(unique(Avocado$region))
+length(unique(avocado$region))
+```
+
+```{r echo=F, }
+ggplot(avocado,  aes(y = AveragePrice, x = Date)) +  geom_point(color="blue", size = 0.2)
+
+```
+
+
+%%%%%%%%From Testing.Rmd
+
+
+#Let´s plot the average price as for each period
+
+#The price looks pretty messy right? So let´s use Pontus coola confidence interval grej
+
+```{r, echo=F}
+price_plot = ggplot(avocado) +
+  geom_point(aes(y = AveragePrice, x = Date), size = 0.1) + 
+  scale_x_date(date_breaks = "6 months")
+price_plot
+price_plot +  geom_smooth(aes(y = AveragePrice, x = Date))
+```
+As we can see, there appears to be some cyclical pattern that is further enhanced by time. Could data disaggregate  based on months be reasonable?
+Varaiance might increase aswell, may use a GARCH similar model
+
+```{r cool histogram, echo=F}
+#avocado_ps = pdata.frame(avocado, index = c("region", "Date"))
+#model = plm(formula = AveragePrice ~ lag(AveragePrice, 1:5), subset(avocado_ps, type == "conventional"))
+#summary(model)
+ggplot(avocado, aes(x = AveragePrice, fill = type)) +
+  geom_histogram()
+
+#The following code does not produce what we want.
+kolumner = colnames(avocado)
+for(j in kolumner){
+  print(ggplot(avocado, aes(y = AveragePrice, x = j)) + geom_point())
+}
 ```
 
 
 
+```{r geom_dotplot price month and geom_tile, echo=F}
+#Making new variables. Sebbe did not notice that we already had a year variable :)
+avocado$Year = format(as.Date(avocado$Date), "%Y")
+avocado$Month = format(as.Date(avocado$Date), "%m")
+#Gets the average and variance of each month for all years and states
+avocado = avocado %>% 
+  group_by(Month) %>%
+  summarise(avg_M = mean(AveragePrice), var_M = var(AveragePrice)) %>% 
+  merge(avocado, by = c("Month"))
+
+#Gets the average and variance subsetted on each month and year. states are not differenteiated between
+avocado = avocado %>% 
+  group_by(Month, Year) %>%
+  summarise(avg_M_Y = mean(AveragePrice), var_M_Y = var(AveragePrice)) %>% 
+  merge(avocado, by = c("Month", "Year"))
+
+#Average price per month
+ggplot(data = avocado, aes(x = Month, y = avg_M)) +
+  geom_point()
+
+#Average price per month plus boxplot.
+ggplot(data = avocado, aes(x = Month, y = AveragePrice)) +
+  geom_boxplot() +
+  geom_point(aes(y = avg_M), colour = "blue")
+
+#Tile plot with Month, Year and Average price.
+ggplot(avocado, aes(x = Month, y = Year, fill = avg_M_Y)) +
+  geom_tile() +
+  scale_fill_viridis_c()
+```
+      
